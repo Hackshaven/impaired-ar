@@ -19,16 +19,16 @@ jobs:
           - Android # Build an Android player.
           #- WebGL # WebGL.
     steps:
-      - uses: easimon/maximize-build-space@v4
-        with:
-          # Space to be left free on the root filesystem, in Megabytes.
-          root-reserve-mb: 20480
-          # Removes .NET runtime and libraries. (frees ~17 GB)
-          remove-dotnet: true
-          # Removes Android SDKs and Tools. (frees ~11 GB)
-          remove-android: false # optional, default is false
-          # Removes GHC (Haskell) artifacts. (frees ~2.7 GB)
-          remove-haskell: true # optional, default is false
+      # - uses: easimon/maximize-build-space@v4
+      #   with:
+      #     # Space to be left free on the root filesystem, in Megabytes.
+      #     root-reserve-mb: 20480
+      #     # Removes .NET runtime and libraries. (frees ~17 GB)
+      #     remove-dotnet: true
+      #     # Removes Android SDKs and Tools. (frees ~11 GB)
+      #     remove-android: false # optional, default is false
+      #     # Removes GHC (Haskell) artifacts. (frees ~2.7 GB)
+      #     remove-haskell: true # optional, default is false
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
