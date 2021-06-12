@@ -1,0 +1,72 @@
+name: Test and Build Project
+
+on: [push, pull_request]
+
+jobs:
+  buildAndTestForSomePlatforms:
+    name: Build for ${{ matrix.targetPlatform }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        unityVersion:
+          - 2020.3.11f1
+        targetPlatform:
+          #- StandaloneOSX # Build a macOS standalone (Intel 64-bit).
+          #- StandaloneWindows64 # Build a Windows 64-bit standalone.
+          #- StandaloneLinux64 # Build a Linux 64-bit standalone.
+          #- iOS # Build an iOS player.
+          - Android # Build an Android player.
+          #- WebGL # WebGL.
+    steps:
+      - uses: easimon/maximize-build-space@v4
+        with:
+          # Space to be left free on the root filesystem, in Megabytes.
+          root-reserve-mb: 20480
+          # Removes .NET runtime and libraries. (frees ~17 GB)
+          remove-dotnet: true
+          # Removes Android SDKs and Tools. (frees ~11 GB)
+          remove-android: false # optional, default is false
+          # Removes GHC (Haskell) artifacts. (frees ~2.7 GB)
+          remove-haskell: true # optional, default is false
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          lfs: true
+      - uses: actions/cache@v2
+        with:
+          path: Library
+          key: Library-${{ matrix.targetPlatform }}
+          restore-keys: Library-
+      - uses: game-ci/unity-test-runner@v2
+        id: testRunner
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          unityVersion: ${{ matrix.unityVersion }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: Test results (all modes)
+          path: ${{ steps.testRunner.outputs.artifactsPath }}
+      - uses: game-ci/unity-builder@v2
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          unityVersion: ${{ matrix.unityVersion }}
+          targetPlatform: ${{ matrix.targetPlatform }}
+          buildName: 'impaired-ar'
+          buildMethod: UnityBuilderAction.BuildScript.Build
+          versioning: Semantic
+          allowDirtyBuild: true
+          remoteBuildMemory: 4G
+          #customParameters: '-myParameter myValue -myBoolean -ThirdParameter andItsValue'
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Build
+          path: build
